@@ -1,0 +1,545 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Propagação da Incerteza — Guia do Apresentador</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+  :root{
+    --bg:#0c1a2e;
+    --panel:#12233d;
+    --panel-alt:#0e1c33;
+    --paper:#eef2f7;
+    --paper-dim:#a9b7cc;
+    --amber:#e3a548;
+    --amber-dim:#7c6136;
+    --teal:#79d6c9;
+    --line:rgba(238,242,247,0.14);
+    --grid:rgba(238,242,247,0.055);
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:
+      linear-gradient(var(--grid) 1px, transparent 1px) 0 0/40px 40px,
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0/40px 40px,
+      var(--bg);
+    color:var(--paper);
+    font-family:'IBM Plex Sans', sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .sheet{
+    max-width:920px;
+    margin:18px auto;
+    border:1px dashed var(--amber-dim);
+    padding:0;
+  }
+  @media (max-width:600px){ .sheet{ margin:8px; } }
+
+  /* ---------- breadcrumb / title strip ---------- */
+  .breadcrumb{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:16px 28px;
+    border-bottom:1px dashed var(--amber-dim);
+    font-family:'IBM Plex Mono', monospace;
+    font-size:.72rem;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--paper-dim);
+  }
+  .breadcrumb .dot{ color:var(--amber); }
+
+  /* ---------- hero ---------- */
+  .hero{
+    position:relative;
+    padding:52px 28px 40px;
+    overflow:hidden;
+    border-bottom:1px dashed var(--amber-dim);
+  }
+  .hero-eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:.78rem;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--teal);
+    margin:0 0 14px;
+  }
+  .hero h1{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:clamp(2.1rem, 5vw, 3.1rem);
+    line-height:1.05;
+    margin:0 0 18px;
+    max-width:11ch;
+  }
+  .hero-result{
+    display:inline-flex;
+    align-items:baseline;
+    gap:10px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:clamp(1.15rem, 3vw, 1.55rem);
+    color:var(--amber);
+    background:var(--panel-alt);
+    border:1px solid var(--amber-dim);
+    padding:12px 18px;
+    margin:0 0 12px;
+  }
+  .hero-result small{
+    display:block;
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:.62rem;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--paper-dim);
+    margin-top:6px;
+  }
+  .hero p.lede{
+    max-width:46ch;
+    color:var(--paper-dim);
+    line-height:1.6;
+    font-size:.98rem;
+    margin:18px 0 0;
+  }
+  .hero-meta{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-top:22px;
+  }
+  .chip{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:.68rem;
+    letter-spacing:.06em;
+    color:var(--paper-dim);
+    border:1px solid var(--line);
+    padding:5px 10px;
+  }
+
+  .pendulum-wrap{
+    position:absolute;
+    right:-10px;
+    top:10px;
+    width:210px;
+    opacity:.9;
+  }
+  @media (max-width:720px){ .pendulum-wrap{ position:static; width:150px; margin-top:24px; opacity:1;} }
+  .pendulum-caption{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:.62rem;
+    color:var(--paper-dim);
+    text-align:center;
+    margin-top:2px;
+    letter-spacing:.04em;
+  }
+  .pendulum-group{ transform-origin:110px 20px; animation:swing 1.436s ease-in-out infinite; }
+  @media (prefers-reduced-motion: reduce){ .pendulum-group{ animation:none; } }
+  @keyframes swing{
+    0%{ transform:rotate(-9deg); }
+    50%{ transform:rotate(9deg); }
+    100%{ transform:rotate(-9deg); }
+  }
+
+  /* ---------- slide cards ---------- */
+  main{ padding:6px 28px 10px; }
+
+  .slide-card{
+    border-bottom:1px dashed var(--line);
+    padding:40px 0;
+    opacity:0;
+    transform:translateY(14px);
+    transition:opacity .6s ease, transform .6s ease;
+  }
+  .slide-card.is-visible{ opacity:1; transform:translateY(0); }
+  @media (prefers-reduced-motion: reduce){ .slide-card{ opacity:1; transform:none; } }
+
+  .slide-eyebrow{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:.72rem;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--teal);
+    margin:0 0 6px;
+  }
+  .slide-eyebrow .n{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:20px; height:20px;
+    border:1px solid var(--teal);
+    color:var(--teal);
+    font-size:.68rem;
+  }
+  .slide-card h2{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:1.5rem;
+    margin:0 0 26px;
+    color:var(--paper);
+  }
+
+  .slide-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:28px;
+    align-items:start;
+  }
+  @media (max-width:720px){ .slide-grid{ grid-template-columns:1fr; } }
+
+  /* equation panel */
+  .eq-panel{
+    background:var(--panel);
+    border:1px solid var(--line);
+    padding:22px 22px 18px;
+  }
+  .eq-row{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:1.18rem;
+    color:var(--paper);
+    display:flex;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:.3em;
+    padding:10px 0;
+  }
+  .eq-row + .eq-row{ border-top:1px dashed var(--line); }
+  .eq-row .amber{ color:var(--amber); }
+  .eq-row.result{
+    color:var(--amber);
+    font-size:1.3rem;
+    font-weight:600;
+  }
+  .frac{
+    display:inline-flex;
+    flex-direction:column;
+    align-items:center;
+    text-align:center;
+    vertical-align:middle;
+    font-size:.86em;
+    line-height:1.15;
+    margin:0 .12em;
+  }
+  .frac .n{ padding:0 .18em 3px; border-bottom:1.5px solid currentColor; }
+  .frac .d{ padding:3px .18em 0; }
+
+  .annotations{
+    list-style:none;
+    margin:16px 0 0;
+    padding:14px 0 0;
+    border-top:1px dashed var(--line);
+  }
+  .annotations li{
+    font-size:.82rem;
+    color:var(--paper-dim);
+    line-height:1.55;
+    padding-left:16px;
+    position:relative;
+    margin-bottom:6px;
+  }
+  .annotations li::before{
+    content:'';
+    position:absolute;
+    left:0; top:7px;
+    width:6px; height:6px;
+    background:var(--amber);
+  }
+  .annotations b{ color:var(--paper); font-family:'IBM Plex Mono', monospace; font-weight:500; }
+
+  .result-box{
+    margin-top:18px;
+    border:1px solid var(--amber);
+    padding:16px 18px;
+    text-align:center;
+  }
+  .result-box .val{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:1.35rem;
+    color:var(--amber);
+  }
+  .result-box .lbl{
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:.66rem;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--paper-dim);
+    margin-top:6px;
+  }
+
+  /* script / o que dizer */
+  .script-panel{ padding-top:2px; }
+  .script-label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:.68rem;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--paper-dim);
+    margin:0 0 10px;
+  }
+  .script-panel blockquote{
+    margin:0;
+    padding-left:16px;
+    border-left:2px solid var(--teal);
+  }
+  .script-panel p{
+    font-family:'Fraunces', serif;
+    font-weight:500;
+    font-style:italic;
+    font-size:1.02rem;
+    line-height:1.65;
+    color:var(--paper);
+    margin:0 0 16px;
+  }
+  .script-panel p:last-child{ margin-bottom:0; }
+
+  /* ---------- callout ---------- */
+  .callout{
+    margin:38px 0;
+    border:1px dashed var(--teal);
+    padding:22px 24px;
+  }
+  .callout-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-bottom:12px;
+  }
+  .callout h3{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:1.12rem;
+    color:var(--teal);
+    margin:0;
+  }
+  .callout .when{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:.66rem;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color:var(--paper-dim);
+  }
+  .callout p{
+    font-size:.95rem;
+    line-height:1.7;
+    color:var(--paper-dim);
+    margin:0 0 12px;
+  }
+  .callout p:last-child{ margin-bottom:0; }
+  .callout strong{ color:var(--paper); }
+
+  /* ---------- footer tip + title block ---------- */
+  .tip{
+    padding:22px 0 6px;
+  }
+  .tip-label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:.68rem;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--amber);
+    margin:0 0 8px;
+  }
+  .tip p{
+    font-size:.9rem;
+    line-height:1.65;
+    color:var(--paper-dim);
+    margin:0;
+    max-width:60ch;
+  }
+
+  .titleblock{
+    margin-top:20px;
+    border-top:1px dashed var(--amber-dim);
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+  }
+  @media (max-width:640px){ .titleblock{ grid-template-columns:repeat(2,1fr); } }
+  .tb-cell{
+    padding:14px 16px;
+    border-right:1px dashed var(--amber-dim);
+    border-bottom:1px dashed var(--amber-dim);
+  }
+  .tb-cell:nth-child(4n){ border-right:none; }
+  .tb-cell .k{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:.6rem;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--paper-dim);
+    margin:0 0 5px;
+  }
+  .tb-cell .v{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:.76rem;
+    color:var(--paper);
+  }
+</style>
+</head>
+<body>
+
+<div class="sheet">
+
+  <div class="breadcrumb">
+    <span>Pêndulo Simples</span><span class="dot">·</span><span>Determinação de g</span><span class="dot">·</span><span>Propagação da Incerteza</span>
+  </div>
+
+  <header class="hero">
+    <p class="hero-eyebrow">Guia do apresentador</p>
+    <h1>Propagação da Incerteza</h1>
+
+    <div class="hero-result">
+      g<sub>exp</sub> = 9,797 ± 0,160 m/s²
+      <small>o resultado que estes 2 slides constroem, passo a passo</small>
+    </div>
+
+    <p class="lede">Roteiro direto para falar os dois slides finais antes do erro relativo: a equação, a substituição dos números e o porquê de usar Δa em vez de ΔL e ΔT.</p>
+
+    <div class="hero-meta">
+      <span class="chip">2 slides</span>
+      <span class="chip">sequência 1 → 2</span>
+      <span class="chip">foco: equação + justificativa</span>
+    </div>
+
+    <div class="pendulum-wrap" aria-hidden="true">
+      <svg viewBox="0 0 220 190" width="100%">
+        <line x1="55" y1="18" x2="165" y2="18" stroke="#a9b7cc" stroke-width="3"/>
+        <line x1="62" y1="18" x2="52" y2="8" stroke="#a9b7cc" stroke-width="1.5"/>
+        <line x1="82" y1="18" x2="72" y2="8" stroke="#a9b7cc" stroke-width="1.5"/>
+        <line x1="102" y1="18" x2="92" y2="8" stroke="#a9b7cc" stroke-width="1.5"/>
+        <line x1="122" y1="18" x2="112" y2="8" stroke="#a9b7cc" stroke-width="1.5"/>
+        <line x1="142" y1="18" x2="132" y2="8" stroke="#a9b7cc" stroke-width="1.5"/>
+        <line x1="162" y1="18" x2="152" y2="8" stroke="#a9b7cc" stroke-width="1.5"/>
+        <path d="M65,18 A55,55 0 0 1 155,18" fill="none" stroke="#a9b7cc" stroke-width="1" stroke-dasharray="2 4" opacity=".6"/>
+        <text x="60" y="16" fill="#a9b7cc" font-size="9" font-family="IBM Plex Mono, monospace">-10°</text>
+        <text x="106" y="82" fill="#a9b7cc" font-size="9" font-family="IBM Plex Mono, monospace">0°</text>
+        <text x="148" y="16" fill="#a9b7cc" font-size="9" font-family="IBM Plex Mono, monospace">10°</text>
+        <g class="pendulum-group">
+          <line x1="110" y1="18" x2="110" y2="132" stroke="#eef2f7" stroke-width="2"/>
+          <circle cx="110" cy="144" r="13" fill="#e3a548" stroke="#7c6136" stroke-width="2"/>
+        </g>
+      </svg>
+      <p class="pendulum-caption">T ≈ 1,436 s (L = 50 cm) — Dado 8 da tabela</p>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- SLIDE 1 -->
+    <section class="slide-card reveal">
+      <p class="slide-eyebrow"><span class="n">1</span> Slide 1 de 2</p>
+      <h2>Propagação da Incerteza</h2>
+
+      <div class="slide-grid">
+        <div class="eq-panel">
+          <div class="eq-row">
+            g<span style="font-size:.7em;vertical-align:sub;">exp</span> =
+            <span class="frac amber"><span class="n">4π²</span><span class="d">a</span></span>
+          </div>
+          <div class="eq-row">
+            a = <span class="amber">4,0293 ± 0,0659</span>
+          </div>
+          <div class="eq-row">
+            Δg = g ·
+            <span class="frac"><span class="n">Δa</span><span class="d">a</span></span>
+          </div>
+
+          <ul class="annotations">
+            <li><b>a</b> — coeficiente angular da reta ajustada no gráfico T² × L</li>
+            <li><b>Δa</b> — incerteza do coeficiente angular, dada pelo ajuste linear</li>
+            <li><b>Δg</b> — incerteza propagada para a aceleração da gravidade</li>
+          </ul>
+        </div>
+
+        <div class="script-panel">
+          <p class="script-label">O que dizer</p>
+          <blockquote>
+            <p>"Agora vamos mostrar como calculamos a incerteza do nosso valor de g. A fórmula que usamos foi g_exp = 4π² dividido por 'a', onde 'a' é o coeficiente angular da reta que ajustamos no gráfico anterior, de T² por L. O ajuste linear nos deu a = 4,0293 ± 0,0659 — esse valor e essa incerteza vêm direto da regressão que fizemos com os 8 pontos experimentais."</p>
+            <p>"Substituindo, chegamos em g_exp = 39,4784 dividido por 4,0293. Para propagar a incerteza do coeficiente angular até o g, usamos essa expressão aqui: Δg = g vezes (Δa/a). Ou seja, o erro relativo do coeficiente angular se transfere diretamente para o erro relativo do g."</p>
+          </blockquote>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 2 -->
+    <section class="slide-card reveal">
+      <p class="slide-eyebrow"><span class="n">2</span> Slide 2 de 2</p>
+      <h2>Propagação da Incerteza — continuação</h2>
+
+      <div class="slide-grid">
+        <div class="eq-panel">
+          <div class="eq-row">
+            Δg = 9,7978 ×
+            <span class="frac"><span class="n">0,0659</span><span class="d">4,0293</span></span>
+          </div>
+          <div class="eq-row">
+            Δg = 9,7978 × 0,01635
+          </div>
+          <div class="eq-row result">
+            Δg = 0,160 m/s²
+          </div>
+
+          <div class="result-box">
+            <div class="val">g<sub>exp</sub> = 9,797 ± 0,160 m/s²</div>
+            <div class="lbl">resultado final com incerteza</div>
+          </div>
+        </div>
+
+        <div class="script-panel">
+          <p class="script-label">O que dizer</p>
+          <blockquote>
+            <p>"Aqui é só substituir os números: Δg = 9,7978 vezes (0,0659/4,0293), o que dá 9,7978 vezes 0,01635, resultando em Δg = 0,160 m/s². Com isso, chegamos ao nosso resultado final: g_exp = 9,797 ± 0,160 m/s²."</p>
+          </blockquote>
+        </div>
+      </div>
+
+      <div class="callout reveal">
+        <div class="callout-head">
+          <h3>Por que Δa, e não ΔL e ΔT direto?</h3>
+          <span class="when">falar no fim do slide 2, antes do erro relativo</span>
+        </div>
+        <p>"Vale explicar por que usamos essa fórmula, e não a propagação tradicional com ΔL e ΔT diretamente. O ΔL e ΔT vêm de uma única medição — refletem só a incerteza do instrumento, tipo a trena e o cronômetro."</p>
+        <p>"Já o coeficiente angular 'a' vem do ajuste linear feito com os 8 pontos, então a incerteza Δa já carrega embutida a variação real observada entre <strong>todas</strong> as medidas de L e T juntas. Isso deixa o resultado mais robusto estatisticamente, porque não depende de um único par de medida, e sim do comportamento de todo o conjunto de dados."</p>
+      </div>
+    </section>
+
+    <div class="tip">
+      <p class="tip-label">Dica de entrega</p>
+      <p>Fale essas frases com calma, apontando para cada termo da equação enquanto cita ("aqui o a é...", "substituindo aqui..."), sem soar decorado — isso ajuda a plateia a acompanhar o raciocínio junto com você.</p>
+    </div>
+
+    <div class="titleblock">
+      <div class="tb-cell"><p class="k">Projeto</p><p class="v">Pêndulo Simples</p></div>
+      <div class="tb-cell"><p class="k">Disciplina</p><p class="v">Introdução à Física Experimental</p></div>
+      <div class="tb-cell"><p class="k">Orientador</p><p class="v">Prof. Dr. Matheus Paixão</p></div>
+      <div class="tb-cell"><p class="k">Local / Data</p><p class="v">Natal, RN · 2026</p></div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+  var els = document.querySelectorAll('.reveal');
+  if('IntersectionObserver' in window){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){ e.target.classList.add('is-visible'); io.unobserve(e.target); }
+      });
+    }, { threshold:.15 });
+    els.forEach(function(el){ io.observe(el); });
+  } else {
+    els.forEach(function(el){ el.classList.add('is-visible'); });
+  }
+</script>
+
+</body>
+</html>
